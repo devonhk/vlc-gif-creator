@@ -1,0 +1,58 @@
+## VLC gif generator
+--------------------
+
+I wrote this tool because I wanted to create gifs very quickly and in large quantities.
+This tool allows you to create gifs from VLC without ever switching windows.
+
+#### How it works
+You start by playing a video in VLC. Whenever you see a scene that you like, you hit the action key
+which triggers the tool to connect to VLC's http server to grab metadata about the video your currently watching.
+The tool then creates a gif of n seconds long starting from where you were in the video.
+
+#### Setup
+
+First off you need to install VLC media player
+
+    http://www.videolan.org/vlc/
+
+Then configure the VLC http server
+<br>
+
+###### First click on Tools > Preferences
+
+###### Then click on select all
+
+![select all](/docs/usage/select_all.png)
+
+###### Click on web interface
+
+![web_interface](/docs/usage/web_interface.png)
+
+###### Set a password for the web interface (username not necessary)
+
+![set_password](/docs/usage/set_password.png)
+
+##### Once VLC is setup you can begin installing the python package
+
+`pip3 install -r requirements.txt`
+
+-------------------------------------------
+
+### Configuration
+
+This tool uses a config file for connecting to VLC's http server and for 
+creating the GIFs.
+The default config should work out of the box.
+The file `config.ini` is located at the root of the project.
+
+###### Note
+
+Not affiliated with VLC in any way.
+
+#### License
+
+![license](LICENSE.md)
+
+
+
+

@@ -1,0 +1,9 @@
+decorator==4.0.10
+imageio==1.5
+-e git+https://github.com/boppreh/keyboard.git@5518afc7eda71772f11ba71d35b2c523d8d80458#egg=keyboard
+lxml==3.6.0
+moviepy==0.2.2.11
+numpy==1.11.0
+Pillow==2.9.0
+requests==2.10.0
+tqdm==4.7.4
