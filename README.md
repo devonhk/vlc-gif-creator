@@ -1,8 +1,10 @@
 ## VLC gif generator
 --------------------
 
-I wrote this tool because I wanted to create gifs very quickly and in large quantities.
-This tool allows you to create gifs from VLC without ever switching windows.
+I wrote this tool because I wanted to create gifs quickly and efficiently.
+This tool allows you to effortlessly create gifs from VLC. Big shoutout to [moviepy](https://github.com/Zulko/moviepy).
+I wouldn't have thought of writing this tool if it was not for that library. Unfortunately it isn't
+maintained anymore.
 
 #### How it works
 You start by playing a video in VLC. Whenever you see a scene that you like, you hit the action key
@@ -22,19 +24,24 @@ Then configure the VLC http server
 
 ###### Then click on select all
 
-![select all](/docs/usage/select_all.png)
+![select all](./docs/usage/select_all.png)
 
 ###### Click on web interface
 
-![web_interface](/docs/usage/web_interface.png)
+![web_interface](./docs/usage/web_interface.png)
 
 ###### Set a password for the web interface (username not necessary)
 
-![set_password](/docs/usage/set_password.png)
+![set_password](./docs/usage/set_password.png)
 
 ##### Once VLC is setup you can begin installing the python package
+`cd` into the root of the project directory.
 
-`pip3 install -r requirements.txt`
+`virtualenv -p python3 --no-site-packages env`
+
+`. env/bin/activate`
+
+`pip install -r requirements.txt`
 
 -------------------------------------------
 
@@ -42,8 +49,13 @@ Then configure the VLC http server
 
 This tool uses a config file for connecting to VLC's http server and for 
 creating the GIFs.
-The default config should work out of the box.
-The file `config.ini` is located at the root of the project.
+To create your own config:
+
+`cp config.ini.default config.ini`
+
+#### Roadmap
+
+I'd like add a real gui (pyqt) and offer snap packages to install the tool.
 
 ###### Note
 
@@ -51,7 +63,7 @@ Not affiliated with VLC in any way.
 
 #### License
 
-![license](LICENSE.md)
+![license](./LICENSE.md)
 
 
 
