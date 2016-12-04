@@ -65,7 +65,7 @@ def main(opts, counter, sess):
     time = get_media_time(sess, opts['status'])
     path = get_media_path(sess, opts['playlist'])
     if file_contains_spaces(path):
-        sym_link_path = create_symlink(parse_path_unix(path))
+        sym_link_path = create_symlink(parse_path_unix(path), counter)
         try:
             generate_gif(sym_link_path, time, opts['resize'], opts['gif_len'], opts['gif_name'], counter, opts['output_path'])
         finally:
@@ -110,7 +110,7 @@ def file_contains_spaces(path: str) -> bool:
     return '%20' in path
 
 
-def create_symlink(path: str):
+def create_symlink(path: str, counter: int):
     """
     We pass a symlink to ffmpeg, which it gladly accepts.
     This is a workaround when files have spaces.
@@ -120,7 +120,7 @@ def create_symlink(path: str):
     Returns: path to symlink of media file
     """
     sym_link_path = '/tmp/tmp_vid_link{}'.format(counter)
-    os.symlink(path, sym_link_path)
+    os.system('ln -s {} {}'.format(path, sym_link_path))
     return sym_link_path
 
 
