@@ -1,17 +1,15 @@
 import os
 import sys
+from pathlib import Path
 import configparser
 import argparse
 import requests
+from requests.exceptions import ConnectionError
 from moviepy.editor import VideoFileClip
 import xml.etree.ElementTree as ET
-import keyboard
 
 
-counter = 0
-
-
-def generate_gif(media_path: str, time: int, size: float, gif_len, gif_name: str, output_path='.'):
+def generate_gif(media_path: str, time: int, size: float, gif_len: int, gif_name: str, counter: int, output_path='.'):
     """
     Args:
         media_path: full path to media
@@ -19,9 +17,10 @@ def generate_gif(media_path: str, time: int, size: float, gif_len, gif_name: str
         size: to resize the gif
         gif_len: duration of gif in seconds
         gif_name: base name of all gifs
+        counter: number appended to filename
         output_path: path to write out file
     """
-    clip = VideoFileClip(media_path, audio=False).subclip(
+    clip = VideoFileClip(media_path, audio=True).subclip(
         t_start=time,
         t_end=time+gif_len
     ).resize(size)
@@ -51,33 +50,33 @@ def get_media_time(sess: object, url: str) -> int:
 
     Returns: time in seconds
     """
-    resp = sess.post(url)
+    try:
+        resp = sess.post(url)
+    except ConnectionError as e:
+        print(e, "\nConnection failed. Did you remember to enable VLC's lua http server?")
+        sys.exit(-1)
     tree = ET.fromstring(resp.text.encode('utf-8'))
     time = tree.find('.//time')
     return int(time.text)
 
 
-def main():
-    global counter
-    opts = get_config()
-    sess = requests.session()
+def main(opts, counter, sess):
     sess.auth = (opts['user'], opts['password'])
     time = get_media_time(sess, opts['status'])
     path = get_media_path(sess, opts['playlist'])
     if file_contains_spaces(path):
         sym_link_path = create_symlink(parse_path_unix(path))
         try:
-            generate_gif(sym_link_path, time, opts['resize'], opts['gif_len'], opts['gif_name'])
+            generate_gif(sym_link_path, time, opts['resize'], opts['gif_len'], opts['gif_name'], counter, opts['output_path'])
         finally:
-            clean_up(sym_link_path)
+            os.remove(sym_link_path)
     else:
-        generate_gif(path, time, opts['resize'], opts['gif_len'], opts['gif_name'])
-    counter += 1
+        generate_gif(path, time, opts['resize'], opts['gif_len'], opts['gif_name'], counter, opts['output_path'])
 
 
 def get_config() -> dict:
     """
-    Returns: dict containing config options
+    Returns: dict containing config.ini options
     """
     config = configparser.ConfigParser()
     config.read('config.ini')
@@ -107,16 +106,13 @@ def parse_path_unix(path):
     return path
 
 
-def file_contains_spaces(path):
-    if '%20' in path:
-        return True
-    else:
-        return False
+def file_contains_spaces(path: str) -> bool:
+    return '%20' in path
 
 
-def create_symlink(path):
+def create_symlink(path: str):
     """
-    We pass a symlink to ffmpeg, which it gadly accepts.
+    We pass a symlink to ffmpeg, which it gladly accepts.
     This is a workaround when files have spaces.
     Args:
         path: to media file
@@ -124,17 +120,31 @@ def create_symlink(path):
     Returns: path to symlink of media file
     """
     sym_link_path = '/tmp/tmp_vid_link{}'.format(counter)
-    os.system('ln -s {0} {1}'.format(path, sym_link_path))
+    os.symlink(path, sym_link_path)
     return sym_link_path
 
 
-def clean_up(path):
-    os.system('rm {}'.format(path))
+def create_output_dir(path: str):
+    """Create gif output dir if it doesn't exists"""
+    if not Path(path).exists():
+        os.mkdir(path)
+
+
+def run():
+    counter = 0
+    sess = requests.session()
+    config = get_config()
+    create_output_dir(config['output_path'])
+    while True:
+        make_gif = input('Create a gif? y/Y:yes, q/Q:quit\n').lower()
+        if make_gif == 'y':
+            print('making gif...')
+            main(config, counter, sess)
+            counter += 1
+        if make_gif == 'q':
+            print('Bye.')
+            sys.exit()
 
 
 if __name__ == '__main__':
-    keyboard.add_hotkey('ctrl', lambda: main())
-
-    # Blocks until you press esc.
-    keyboard.wait('esc')
-
+    run()
