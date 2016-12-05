@@ -1,6 +1,9 @@
 ## VLC gif generator
 --------------------
 
+### Demo
+<iframe src="https://vid.me/e/PsJk?stats=1" width="854" height="480" frameborder="0" allowfullscreen webkitallowfullscreen mozallowfullscreen scrolling="no"></iframe>
+--------------------
 I wrote this tool because I wanted to create gifs quickly and efficiently.
 This tool allows you to effortlessly create gifs from VLC. Big shoutout to [moviepy](https://github.com/Zulko/moviepy).
 I wouldn't have thought of writing this tool if it was not for that library. Unfortunately it isn't
