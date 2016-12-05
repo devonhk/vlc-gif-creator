@@ -27,22 +27,23 @@ def generate_gif(media_path: str, time: int, size: float, gif_len: int, gif_name
     clip.write_gif(output_path + '/' + gif_name + str(counter) + '.gif')
 
 
-def get_media_path(sess: object, url: str) -> str:
+def get_media_path(sess: object, url: str, filename: str) -> str:
     """
     Args:
         sess: requests session object. required for http auth
         url: url pointing to vlc's playlist.xml
+        filename: name of media content
 
     Returns: full path to media
     """
     resp = sess.post(url)
     tree = ET.fromstring(resp.text.encode('utf-8'))
-    media_path = tree.find('.//leaf')
+    media_path = tree.find('.//leaf[@name="{filename}"]'.format(filename=filename))
     media_path = media_path.attrib.get('uri')
     return media_path[7:]
 
 
-def get_media_time(sess: object, url: str) -> int:
+def get_media_time(sess: object, url: str) -> tuple:
     """
     Args:
         sess: requests session object. required for http auth
@@ -57,13 +58,14 @@ def get_media_time(sess: object, url: str) -> int:
         sys.exit(-1)
     tree = ET.fromstring(resp.text.encode('utf-8'))
     time = tree.find('.//time')
-    return int(time.text)
+    filename = tree.find('.//info[@name="filename"]')
+    return int(time.text), filename.text
 
 
 def main(opts, counter, sess):
     sess.auth = (opts['user'], opts['password'])
-    time = get_media_time(sess, opts['status'])
-    path = get_media_path(sess, opts['playlist'])
+    time, filename = get_media_time(sess, opts['status'])
+    path = get_media_path(sess, opts['playlist'], filename)
     if file_contains_spaces(path):
         sym_link_path = create_symlink(parse_path_unix(path), counter)
         try:
@@ -116,6 +118,7 @@ def create_symlink(path: str, counter: int):
     This is a workaround when files have spaces.
     Args:
         path: to media file
+        counter: number appended to symlink
 
     Returns: path to symlink of media file
     """
