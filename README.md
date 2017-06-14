@@ -3,8 +3,14 @@
 
 ### Demo
 
-[Watch the tool in action](https://vid.me/PsJk)
+
+[Watch the tool in action](https://vimeo.com/221510023)
 --------------------
+
+![https://vimeo.com/221510023](./docs/usage/gif_creator_thumb.png)
+
+
+
 I wrote this tool because I wanted to create gifs quickly and efficiently.
 This tool allows you to effortlessly create gifs from VLC. Big shoutout to [moviepy](https://github.com/Zulko/moviepy).
 I wouldn't have thought of writing this tool if it was not for that library. Unfortunately it isn't
