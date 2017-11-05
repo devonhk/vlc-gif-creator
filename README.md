@@ -45,13 +45,16 @@ Then configure the VLC http server
 ![set_password](./docs/usage/set_password.png)
 
 ##### Once VLC is setup you can begin installing the python package
-`cd` into the root of the project directory.
 
-`virtualenv -p python3 --no-site-packages env`
+#### Only tested on linux might also work on MacOS
 
-`. env/bin/activate`
+Make sure you have python3.6+ installed
 
-`pip install -r requirements.txt`
+`sudo pip install git+https://github.com/pydo/vlc-gif-creator.git`
+
+or use a virtualenv
+
+You should now have `gifcreator` available in your $PATH
 
 -------------------------------------------
 
@@ -59,9 +62,25 @@ Then configure the VLC http server
 
 This tool uses a config file for connecting to VLC's http server and for 
 creating the GIFs.
-To create your own config:
+After calling `gifcreator` you will have a this config file `$HOME/.gif_creator.config.ini`
+in your home directory.
 
-`cp config.ini.default config.ini`
+### Example config file
+
+```
+[VLC CREDENTIALS]
+user =
+password = root123
+[VLC SERVER]
+status = http://localhost:8080/requests/status.xml
+playlist = http://localhost:8080/requests/playlist.xml
+[CROPPING]
+resize = .70
+[GIF]
+length = 2
+name = gif_name
+output_path = ./awesome_gifs
+```
 
 
 ###### Note
