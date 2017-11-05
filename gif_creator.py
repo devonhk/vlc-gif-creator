@@ -72,12 +72,12 @@ def main(opts, counter, sess):
     generate_gif(path, time, opts['resize'], opts['gif_len'], opts['gif_name'], counter, opts['output_path'])
 
 
-def get_config() -> dict:
+def get_config(config_file: str) -> dict:
     """
     Returns: dict containing config.ini options
     """
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read(config_file)
     user = config['VLC CREDENTIALS']['user']
     password = config['VLC CREDENTIALS']['password']
     resize = float(config['CROPPING']['resize'])
@@ -99,10 +99,10 @@ def create_output_dir(path: str):
         os.mkdir(path)
 
 
-def run():
+def run(config_file='config.ini'):
     counter = 0
     sess = requests.session()
-    config = get_config()
+    config = get_config(config_file)
     create_output_dir(config['output_path'])
     while True:
         make_gif = input('Create a gif? y/Y:yes, q/Q:quit\n').lower()
