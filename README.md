@@ -63,9 +63,6 @@ To create your own config:
 
 `cp config.ini.default config.ini`
 
-#### Roadmap
-
-I'd like add a real gui (pyqt) and offer snap packages to install the tool.
 
 ###### Note
 

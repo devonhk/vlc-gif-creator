@@ -1,12 +1,15 @@
+#!/usr/bin/env python
+
+import configparser
 import os
 import sys
-from pathlib import Path
-import configparser
-import argparse
-import requests
-from requests.exceptions import ConnectionError
-from moviepy.editor import VideoFileClip
 import xml.etree.ElementTree as ET
+from pathlib import Path
+from urllib.parse import unquote
+
+import requests
+from moviepy.editor import VideoFileClip
+from requests.exceptions import ConnectionError
 
 
 def generate_gif(media_path: str, time: int, size: float, gif_len: int, gif_name: str, counter: int, output_path='.'):
@@ -20,14 +23,14 @@ def generate_gif(media_path: str, time: int, size: float, gif_len: int, gif_name
         counter: number appended to filename
         output_path: path to write out file
     """
-    clip = VideoFileClip(media_path, audio=True).subclip(
+    clip = VideoFileClip(media_path, audio=False).subclip(
         t_start=time,
-        t_end=time+gif_len
+        t_end=time + gif_len
     ).resize(size)
-    clip.write_gif(output_path + '/' + gif_name + str(counter) + '.gif')
+    clip.write_gif(output_path + '/' + gif_name + str(counter) + '.gif', program='ffmpeg')
 
 
-def get_media_path(sess: object, url: str, filename: str) -> str:
+def get_media_path(sess: requests.Session, url: str, filename: str) -> str:
     """
     Args:
         sess: requests session object. required for http auth
@@ -37,13 +40,13 @@ def get_media_path(sess: object, url: str, filename: str) -> str:
     Returns: full path to media
     """
     resp = sess.post(url)
-    tree = ET.fromstring(resp.text.encode('utf-8'))
-    media_path = tree.find('.//leaf[@name="{filename}"]'.format(filename=filename))
-    media_path = media_path.attrib.get('uri')
-    return media_path[7:]
+    tree = ET.fromstring(resp.text)
+    media_path = tree.find('.//leaf[@name="{filename}"]'.format(filename=filename)).get('uri')
+    media_path = unquote(media_path)
+    return media_path
 
 
-def get_media_time(sess: object, url: str) -> tuple:
+def get_media_time(sess: requests.Session, url: str) -> tuple:
     """
     Args:
         sess: requests session object. required for http auth
@@ -56,7 +59,7 @@ def get_media_time(sess: object, url: str) -> tuple:
     except ConnectionError as e:
         print(e, "\nConnection failed. Did you remember to enable VLC's lua http server?")
         sys.exit(-1)
-    tree = ET.fromstring(resp.text.encode('utf-8'))
+    tree = ET.fromstring(resp.text)
     time = tree.find('.//time')
     filename = tree.find('.//info[@name="filename"]')
     return int(time.text), filename.text
@@ -66,14 +69,7 @@ def main(opts, counter, sess):
     sess.auth = (opts['user'], opts['password'])
     time, filename = get_media_time(sess, opts['status'])
     path = get_media_path(sess, opts['playlist'], filename)
-    if file_contains_spaces(path):
-        sym_link_path = create_symlink(parse_path_unix(path), counter)
-        try:
-            generate_gif(sym_link_path, time, opts['resize'], opts['gif_len'], opts['gif_name'], counter, opts['output_path'])
-        finally:
-            os.remove(sym_link_path)
-    else:
-        generate_gif(path, time, opts['resize'], opts['gif_len'], opts['gif_name'], counter, opts['output_path'])
+    generate_gif(path, time, opts['resize'], opts['gif_len'], opts['gif_name'], counter, opts['output_path'])
 
 
 def get_config() -> dict:
@@ -95,36 +91,6 @@ def get_config() -> dict:
         playlist=playlist, status=status, gif_len=gif_len,
         gif_name=gif_name, output_path=output_path
     )
-
-
-def parse_path_unix(path):
-    characters = {
-        '%5B': r'\[',
-        '%5D': r'\]',
-        '%20': r'\ '
-    }
-    for char, new_char in characters.items():
-        path = path.replace(char, new_char)
-    return path
-
-
-def file_contains_spaces(path: str) -> bool:
-    return '%20' in path
-
-
-def create_symlink(path: str, counter: int):
-    """
-    We pass a symlink to ffmpeg, which it gladly accepts.
-    This is a workaround when files have spaces.
-    Args:
-        path: to media file
-        counter: number appended to symlink
-
-    Returns: path to symlink of media file
-    """
-    sym_link_path = '/tmp/tmp_vid_link{}'.format(counter)
-    os.system('ln -s {} {}'.format(path, sym_link_path))
-    return sym_link_path
 
 
 def create_output_dir(path: str):
