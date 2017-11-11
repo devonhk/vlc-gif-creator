@@ -13,8 +13,7 @@
 
 I wrote this tool because I wanted to create gifs quickly and efficiently.
 This tool allows you to effortlessly create gifs from VLC. Big shoutout to [moviepy](https://github.com/Zulko/moviepy).
-I wouldn't have thought of writing this tool if it was not for that library. Unfortunately it isn't
-maintained anymore.
+I wouldn't have thought of writing this tool if it was not for that library.
 
 #### How it works
 You start by playing a video in VLC. Whenever you see a scene that you like, you hit the action key

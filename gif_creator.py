@@ -12,7 +12,8 @@ from moviepy.editor import VideoFileClip
 from requests.exceptions import ConnectionError
 
 
-def generate_gif(media_path: str, time: int, size: float, gif_len: int, gif_name: str, counter: int, output_path='.'):
+def generate_gif(media_path: str, time: int, size: float, gif_len: int, gif_name: str, counter: int,
+                 fps, output_path='.'):
     """
     Args:
         media_path: full path to media
@@ -28,7 +29,11 @@ def generate_gif(media_path: str, time: int, size: float, gif_len: int, gif_name
         t_start=time,
         t_end=time + gif_len
     ).resize(size)
-    clip.write_gif(file_path, program='ffmpeg')
+    if fps:
+        clip.write_gif(file_path, program='ffmpeg', fps=float(fps))
+    else:
+        clip.write_gif(file_path, program='ffmpeg')
+
     return file_path
 
 
@@ -59,7 +64,8 @@ def get_media_time(sess: requests.Session, url: str) -> tuple:
     try:
         resp = sess.post(url)
     except ConnectionError as e:
-        print(e, "\nConnection failed. Did you remember to enable VLC's lua http server?")
+        print(e, "\nConnection failed. Did you remember to enable VLC's lua http server?\n"
+                 "Please refer to this guide https://github.com/pydo/vlc-gif-creator/blob/master/README.md#setup")
         sys.exit(-1)
     tree = ET.fromstring(resp.text)
     time = tree.find('.//time')
@@ -71,7 +77,8 @@ def main(opts, counter, sess):
     sess.auth = (opts['user'], opts['password'])
     time, filename = get_media_time(sess, opts['status'])
     path = get_media_path(sess, opts['playlist'], filename)
-    file_path = generate_gif(path, time, opts['resize'], opts['gif_len'], opts['gif_name'], counter, opts['output_path'])
+    file_path = generate_gif(path, time, opts['resize'], opts['gif_len'], opts['gif_name'], counter,
+                             opts['gif_fps'], opts['output_path'])
     append_credits(file_path)
 
 
@@ -89,10 +96,11 @@ def get_config(config_file: str) -> dict:
     gif_len = int(config['GIF']['length'])
     gif_name = config['GIF']['name']
     output_path = config['GIF']['output_path']
+    gif_fps = config['GIF']['fps']
     return dict(
         user=user, password=password, resize=resize,
         playlist=playlist, status=status, gif_len=gif_len,
-        gif_name=gif_name, output_path=output_path
+        gif_name=gif_name, output_path=output_path, gif_fps=gif_fps
     )
 
 

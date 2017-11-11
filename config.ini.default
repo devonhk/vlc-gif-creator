@@ -10,3 +10,4 @@ resize = .70
 length = 2
 name = gif_name
 output_path = ./awesome_gifs
+fps =
