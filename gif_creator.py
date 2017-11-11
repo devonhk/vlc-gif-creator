@@ -23,11 +23,13 @@ def generate_gif(media_path: str, time: int, size: float, gif_len: int, gif_name
         counter: number appended to filename
         output_path: path to write out file
     """
+    file_path = os.path.join(output_path, gif_name + str(counter) + '.gif')
     clip = VideoFileClip(media_path, audio=False).subclip(
         t_start=time,
         t_end=time + gif_len
     ).resize(size)
-    clip.write_gif(output_path + '/' + gif_name + str(counter) + '.gif', program='ffmpeg')
+    clip.write_gif(file_path, program='ffmpeg')
+    return file_path
 
 
 def get_media_path(sess: requests.Session, url: str, filename: str) -> str:
@@ -69,7 +71,8 @@ def main(opts, counter, sess):
     sess.auth = (opts['user'], opts['password'])
     time, filename = get_media_time(sess, opts['status'])
     path = get_media_path(sess, opts['playlist'], filename)
-    generate_gif(path, time, opts['resize'], opts['gif_len'], opts['gif_name'], counter, opts['output_path'])
+    file_path = generate_gif(path, time, opts['resize'], opts['gif_len'], opts['gif_name'], counter, opts['output_path'])
+    append_credits(file_path)
 
 
 def get_config(config_file: str) -> dict:
@@ -96,7 +99,12 @@ def get_config(config_file: str) -> dict:
 def create_output_dir(path: str):
     """Create gif output dir if it doesn't exists"""
     if not Path(path).exists():
-        os.mkdir(path)
+        os.makedirs(path)
+
+
+def append_credits(file_path: str):
+    with open(file_path, 'ab') as f:
+        f.write('Made with ♥ using github.com/pydo/vlc-gif-creator'.encode('utf8'))
 
 
 def run(config_file='config.ini'):
